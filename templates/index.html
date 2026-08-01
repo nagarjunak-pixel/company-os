@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompanyOS — Autonomous Company Engine</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-theme">
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="logo-icon">🏢</div>
+            <div>
+                <h1 id="company-name">Aurora Coffee Co.</h1>
+                <p id="company-subtitle" class="subtitle">Specialty Coffee Roasting & Retail • CompanyOS</p>
+            </div>
+        </div>
+        <div class="header-controls">
+            <span id="mode-badge" class="badge mode-sim">SIM MODE</span>
+            <button id="btn-advance" class="btn btn-primary">⚡ Advance Board</button>
+            <button id="btn-rebuild" class="btn btn-secondary">🔄 Rebuild Plan</button>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- KPI Panel -->
+        <section class="kpi-panel">
+            <div class="kpi-card" id="kpi-revenue-card">
+                <div class="kpi-title">Gross Revenue</div>
+                <div class="kpi-value" id="kpi-revenue">$0</div>
+                <div class="kpi-trend" id="kpi-revenue-trend">Targeting Growth</div>
+            </div>
+            <div class="kpi-card" id="kpi-expenses-card">
+                <div class="kpi-title">Operational Expenses</div>
+                <div class="kpi-value" id="kpi-expenses">$0</div>
+                <div class="kpi-subtext">OpEx Allocation</div>
+            </div>
+            <div class="kpi-card" id="kpi-profit-card">
+                <div class="kpi-title">Net Profit</div>
+                <div class="kpi-value" id="kpi-profit">$0</div>
+                <div class="kpi-subtext" id="kpi-margin">Margin: 0%</div>
+            </div>
+            <div class="kpi-card" id="kpi-pipeline-card">
+                <div class="kpi-title">Pipeline Value</div>
+                <div class="kpi-value" id="kpi-pipeline">$0</div>
+                <div class="kpi-subtext">Active Workloads</div>
+            </div>
+            <div class="kpi-card" id="kpi-csat-card">
+                <div class="kpi-title">Customer Satisfaction</div>
+                <div class="kpi-value" id="kpi-csat">0.0</div>
+                <div class="kpi-subtext">CSAT Benchmark / 100</div>
+            </div>
+        </section>
+
+        <!-- Org Chart & Roster Row -->
+        <div class="grid-two-col">
+            <!-- Org Chart Card -->
+            <section class="card org-card">
+                <div class="card-header">
+                    <h2>🌳 Organizational Structure</h2>
+                    <span class="card-tag">7 Executive Agents</span>
+                </div>
+                <div class="org-svg-container">
+                    <svg id="org-chart-svg" viewBox="0 0 800 260" preserveAspectRatio="xMidYMid meet">
+                        <!-- Connecting Lines -->
+                        <path d="M 400 65 L 400 95" stroke="#3b82f6" stroke-width="2.5" fill="none" />
+                        <path d="M 90 95 L 710 95" stroke="#3b82f6" stroke-width="2.5" fill="none" />
+                        <path d="M 90 95 L 90 145" stroke="#3b82f6" stroke-width="2" fill="none" />
+                        <path d="M 193 95 L 193 145" stroke="#3b82f6" stroke-width="2" fill="none" />
+                        <path d="M 296 95 L 296 145" stroke="#3b82f6" stroke-width="2" fill="none" />
+                        <path d="M 400 95 L 400 145" stroke="#3b82f6" stroke-width="2" fill="none" />
+                        <path d="M 504 95 L 504 145" stroke="#3b82f6" stroke-width="2" fill="none" />
+                        <path d="M 607 95 L 607 145" stroke="#3b82f6" stroke-width="2" fill="none" />
+                        <path d="M 710 95 L 710 145" stroke="#3b82f6" stroke-width="2" fill="none" />
+
+                        <!-- CEO Node -->
+                        <g class="org-node ceo-node" transform="translate(325, 10)">
+                            <rect width="150" height="55" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+                            <text x="75" y="24" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="13">👑 CEO</text>
+                            <text x="75" y="42" text-anchor="middle" fill="#e2e8f0" font-size="11">Elena Rostova</text>
+                        </g>
+
+                        <!-- Sub Nodes -->
+                        <g class="org-node" transform="translate(25, 145)">
+                            <rect width="130" height="50" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="65" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">⚙️ COO</text>
+                            <text x="65" y="38" text-anchor="middle" fill="#cbd5e1" font-size="10">Marcus V.</text>
+                        </g>
+                        <g class="org-node" transform="translate(165, 145)">
+                            <rect width="130" height="50" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="65" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">📢 CMO</text>
+                            <text x="65" y="38" text-anchor="middle" fill="#cbd5e1" font-size="10">Sophia C.</text>
+                        </g>
+                        <g class="org-node" transform="translate(305, 145)">
+                            <rect width="130" height="50" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="65" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">💼 Sales</text>
+                            <text x="65" y="38" text-anchor="middle" fill="#cbd5e1" font-size="10">David K.</text>
+                        </g>
+                        <g class="org-node" transform="translate(445, 145)">
+                            <rect width="130" height="50" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="65" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">📊 Finance</text>
+                            <text x="65" y="38" text-anchor="middle" fill="#cbd5e1" font-size="10">Rachel A.</text>
+                        </g>
+                        <g class="org-node" transform="translate(585, 145)">
+                            <rect width="130" height="50" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="65" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">🛠️ Product</text>
+                            <text x="65" y="38" text-anchor="middle" fill="#cbd5e1" font-size="10">Alex T.</text>
+                        </g>
+                        <g class="org-node" transform="translate(725, 145)">
+                            <rect width="70" height="50" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="35" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">💬 Supp.</text>
+                            <text x="35" y="38" text-anchor="middle" fill="#cbd5e1" font-size="10">Maya P.</text>
+                        </g>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- Agent Roster Card -->
+            <section class="card roster-card">
+                <div class="card-header">
+                    <h2>🤖 Executive AI Agents</h2>
+                    <span class="card-tag" id="agent-count-tag">7 Active</span>
+                </div>
+                <div id="roster-grid" class="roster-grid">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Kanban Board Section -->
+        <section class="card board-card">
+            <div class="card-header">
+                <h2>📋 Operational Kanban Board</h2>
+                <div class="board-stats" id="board-summary-text">0 Backlog • 0 To Do • 0 Doing • 0 Done</div>
+            </div>
+            <div class="kanban-grid">
+                <!-- Column: Backlog -->
+                <div class="kanban-column" id="col-backlog">
+                    <div class="column-header column-backlog">
+                        <h3>Backlog <span class="count-pill" id="count-backlog">0</span></h3>
+                    </div>
+                    <div class="column-body" id="cards-backlog"></div>
+                </div>
+
+                <!-- Column: To Do -->
+                <div class="kanban-column" id="col-todo">
+                    <div class="column-header column-todo">
+                        <h3>To Do <span class="count-pill" id="count-todo">0</span></h3>
+                    </div>
+                    <div class="column-body" id="cards-todo"></div>
+                </div>
+
+                <!-- Column: Doing -->
+                <div class="kanban-column" id="col-doing">
+                    <div class="column-header column-doing">
+                        <h3>In Progress <span class="count-pill" id="count-doing">0</span></h3>
+                    </div>
+                    <div class="column-body" id="cards-doing"></div>
+                </div>
+
+                <!-- Column: Done -->
+                <div class="kanban-column" id="col-done">
+                    <div class="column-header column-done">
+                        <h3>Completed <span class="count-pill" id="count-done">0</span></h3>
+                    </div>
+                    <div class="column-body" id="cards-done"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Event Stream Section -->
+        <section class="card events-card">
+            <div class="card-header">
+                <h2>📡 Live Agent Activity Log</h2>
+                <span class="pulse-indicator">● Streaming Live</span>
+            </div>
+            <div class="events-container" id="events-list">
+                <div class="event-item">Initializing CompanyOS live event feed...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Task Details / Agent Interaction -->
+    <div id="modal-backdrop" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Task Details</h3>
+                <button id="modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
