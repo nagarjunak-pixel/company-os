@@ -3,3 +3,10 @@ __pycache__/
 data/
 *.log
 .DS_Store
+
+# Private settings (keys, passwords) - never commit (added 2026-10-19)
+.env
+.env.*
+!.env.example
+!.env.template
+!.env.sample
