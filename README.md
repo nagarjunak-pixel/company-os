@@ -1,6 +1,10 @@
 # CompanyOS — Config-Driven Multi-Agent Operations Runtime
 
-**CompanyOS** is a lightweight Python and Flask runtime that models multi-department operational planning, task delegation, Kanban execution, and financial KPI tracking across seven role-scoped agents configured via a single `company.json` manifest.
+[![CompanyOS CI](https://github.com/nagarjunak-pixel/company-os/actions/workflows/ci.yml/badge.svg)](https://github.com/nagarjunak-pixel/company-os/actions/workflows/ci.yml)
+[![Release v1.1.0](https://img.shields.io/badge/release-v1.1.0-1f6feb.svg)](https://github.com/nagarjunak-pixel/company-os/releases/tag/v1.1.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-10b981.svg)](LICENSE)
+
+**CompanyOS** is a lightweight Python and Flask runtime that models multi-department operational planning, task delegation, Kanban execution, SHACL shape-bounded 3-way knowledge merges, and financial KPI tracking across seven role-scoped agents configured via a single `company.json` manifest.
 
 Given a `company.json` profile, CompanyOS generates a structured operating plan (objectives → department goals → task backlog), assigns work items to role-specific agents, advances execution ticks on a web Kanban dashboard, records append-only activity events, and updates operational metrics.
 
@@ -73,6 +77,11 @@ python3 -m pytest test_companyos.py -v
 ```
 
 ---
+
+## v1.1.0 — SHACL 3-Way Knowledge-Graph Merge & OKF Procedure Memory (`company_os/shacl_procedure_merge.py`)
+
+- **SHACL Shape-Bounded 3-Way Merge (`shacl_three_way_merge`, `POST /api/merge-graph`, `arXiv:2611.34870`):** Canonicalizes entity aliases across concurrent multi-agent graph branches, auto-merges multi-valued set additions and removals without human prompts, and escalates only true functional/cardinality violations (`max_count` / `min_count`).
+- **OKF Procedure Memory Distillation (`distill_procedure_memory`, `POST /api/procedures/distill`, `arXiv:2611.34576`):** Compresses verbose multi-turn episodic agent logs into deduplicated reusable runbook steps (`>=90%` token reduction) while dropping reverted attempts and preserving guard invariants.
 
 ## Directory Layout
 

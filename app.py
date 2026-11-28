@@ -4,6 +4,11 @@ from company_os.config import load_company_config, save_company_config
 from company_os.store import Store
 from company_os.agents import ROSTER, get_agent_by_role
 from company_os.engine import generate_plan, assign_loop, advance_board, compute_kpis
+from company_os.shacl_procedure_merge import (
+    PropertyShape,
+    distill_procedure_memory,
+    shacl_three_way_merge,
+)
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -155,6 +160,57 @@ def agent_message(name):
     return jsonify({
         "agent": target_agent.to_dict(),
         "response": response
+    })
+
+
+@app.route("/api/merge-graph", methods=["POST"])
+def api_merge_graph():
+    payload = request.get_json(silent=True) or {}
+    base = [tuple(t) for t in payload.get("base", []) if len(t) == 3]
+    left = [tuple(t) for t in payload.get("left", []) if len(t) == 3]
+    right = [tuple(t) for t in payload.get("right", []) if len(t) == 3]
+    raw_shapes = payload.get("shapes", {})
+    shapes = {
+        pred: PropertyShape(
+            predicate=pred,
+            max_count=spec.get("max_count"),
+            min_count=int(spec.get("min_count", 0)),
+        )
+        for pred, spec in raw_shapes.items()
+    }
+    aliases = {str(k): str(v) for k, v in payload.get("entity_aliases", {}).items()}
+    res = shacl_three_way_merge(base, left, right, shapes=shapes, entity_aliases=aliases)
+    return jsonify({
+        "merged_triples": [list(t) for t in res.merged_triples],
+        "conflicts": [
+            {
+                "subject": c.subject,
+                "predicate": c.predicate,
+                "reason": c.reason,
+            }
+            for c in res.conflicts
+        ],
+        "naive_diff_prompts": res.naive_diff_prompts,
+        "shacl_conflict_prompts": res.shacl_conflict_prompts,
+    })
+
+
+@app.route("/api/procedures/distill", methods=["POST"])
+def api_distill_procedure():
+    payload = request.get_json(silent=True) or {}
+    proc_id = str(payload.get("procedure_id", "ops-runbook")).strip()
+    events = payload.get("events", [])
+    try:
+        res = distill_procedure_memory(proc_id, events)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({
+        "procedure_id": res.procedure_id,
+        "step_count": len(res.steps),
+        "raw_token_count": res.raw_token_count,
+        "distilled_token_count": res.distilled_token_count,
+        "token_reduction_ratio": res.token_reduction_ratio,
+        "formatted_prompt_block": res.formatted_prompt_block,
     })
 
 if __name__ == "__main__":

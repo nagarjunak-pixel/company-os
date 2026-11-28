@@ -170,3 +170,129 @@ def test_flask_api_routes():
     res_msg = client.post("/api/agent/ceo/message", json={"message": "Analyze market competitors"})
     assert res_msg.status_code == 200
     assert "response" in res_msg.get_json()
+
+
+def test_shacl_three_way_merge_and_alias_canonicalization():
+    """SHACL 3-way merge auto-merges set predicates and flags only true cardinality conflicts."""
+    from company_os.shacl_procedure_merge import PropertyShape, shacl_three_way_merge
+
+    shapes = {
+        "hasOwner": PropertyShape(predicate="hasOwner", max_count=1, min_count=1),
+        "hasTag": PropertyShape(predicate="hasTag", max_count=None, min_count=0),
+    }
+    aliases = {"proj:alpha_v1": "proj:alpha", "user:alice_lead": "user:alice"}
+
+    base = [
+        ("proj:alpha", "hasOwner", "user:bob"),
+        ("proj:alpha", "hasTag", "core"),
+        ("proj:beta", "hasOwner", "user:carol"),
+    ]
+    # Left adds 10 non-conflicting tags + changes proj:beta owner to alice (via alias)
+    left = [
+        ("proj:alpha_v1", "hasOwner", "user:bob"),
+        ("proj:alpha", "hasTag", "core"),
+        *[(f"proj:alpha", "hasTag", f"tag_l_{i}") for i in range(10)],
+        ("proj:beta", "hasOwner", "user:alice_lead"),
+    ]
+    # Right adds 10 distinct tags + changes proj:beta owner to dave -> 1 true SHACL conflict vs 22 naive diffs!
+    right = [
+        ("proj:alpha", "hasOwner", "user:bob"),
+        ("proj:alpha", "hasTag", "core"),
+        *[(f"proj:alpha", "hasTag", f"tag_r_{i}") for i in range(10)],
+        ("proj:beta", "hasOwner", "user:dave"),
+    ]
+
+    res = shacl_three_way_merge(base, left, right, shapes=shapes, entity_aliases=aliases)
+    assert res.naive_diff_prompts == 22
+    assert res.shacl_conflict_prompts == 1
+    assert res.conflicts[0].subject == "proj:beta"
+    assert res.conflicts[0].reason == "shacl_max_count_exceeded:1"
+    assert ("proj:alpha", "hasTag", "tag_l_0") in res.merged_triples
+    assert ("proj:alpha", "hasTag", "tag_r_9") in res.merged_triples
+
+    # Single-branch functional update (only right modifies hasOwner) merges cleanly without conflict
+    clean_one_side = shacl_three_way_merge(
+        base=[("proj:gamma", "hasOwner", "user:bob")],
+        left=[("proj:gamma", "hasOwner", "user:bob")],
+        right=[("proj:gamma", "hasOwner", "user:alice")],
+        shapes=shapes,
+    )
+    assert clean_one_side.shacl_conflict_prompts == 0
+    assert ("proj:gamma", "hasOwner", "user:alice") in clean_one_side.merged_triples
+
+    # Min-count violation caught when both branches remove mandatory owner
+    min_viol = shacl_three_way_merge(
+        base=[("proj:delta", "hasOwner", "user:bob")],
+        left=[],
+        right=[],
+        shapes=shapes,
+    )
+    assert min_viol.shacl_conflict_prompts == 1
+    assert min_viol.conflicts[0].reason == "shacl_min_count_violated:1"
+
+
+def test_okf_procedure_memory_distillation_and_flask_endpoints():
+    """OKF procedure distillation compresses verbose traces by >=90% and exposes Flask routes."""
+    from company_os.shacl_procedure_merge import distill_procedure_memory
+
+    with pytest.raises(ValueError, match="procedure_id"):
+        distill_procedure_memory("", [{"action": "a"}])
+    with pytest.raises(ValueError, match="episodic_events"):
+        distill_procedure_memory("p1", [])
+
+    verbose_trace = (
+        "Evaluated full historical sprint context across 14 upstream tickets and "
+        "verified schema invariants against quarterly budget ledger constraints " * 8
+    )
+    events = [
+        {
+            "department": "Finance",
+            "action": "validate_budget_cap",
+            "guard": "variance_le_2pct",
+            "reasoning_trace": verbose_trace,
+        },
+        {
+            "department": "Finance",
+            "action": "validate_budget_cap",
+            "guard": "variance_le_2pct",
+            "reasoning_trace": verbose_trace,
+        },
+        {
+            "department": "Ops",
+            "action": "transient_timeout_attempt",
+            "status": "reverted",
+            "reasoning_trace": verbose_trace,
+        },
+        {
+            "department": "Support",
+            "action": "publish_sla_digest",
+            "guard": "citations_bound",
+            "reasoning_trace": verbose_trace,
+        },
+    ]
+    distilled = distill_procedure_memory("quarterly-close", events)
+    assert len(distilled.steps) == 2
+    assert distilled.token_reduction_ratio >= 0.90
+
+    client = app.test_client()
+    m_resp = client.post(
+        "/api/merge-graph",
+        json={
+            "base": [["task:1", "status", "todo"]],
+            "left": [["task:1", "status", "doing"]],
+            "right": [["task:1", "status", "todo"]],
+            "shapes": {"status": {"max_count": 1, "min_count": 1}},
+        },
+    )
+    assert m_resp.status_code == 200
+    assert m_resp.get_json()["shacl_conflict_prompts"] == 0
+
+    d_resp = client.post(
+        "/api/procedures/distill",
+        json={"procedure_id": "close-v1", "events": events},
+    )
+    assert d_resp.status_code == 200
+    assert d_resp.get_json()["token_reduction_ratio"] >= 0.90
+
+    bad_resp = client.post("/api/procedures/distill", json={"procedure_id": "x", "events": []})
+    assert bad_resp.status_code == 400
